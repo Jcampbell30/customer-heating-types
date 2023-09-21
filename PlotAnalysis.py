@@ -2,7 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from sqlalchemy import create_engine
+from mysql.connector.errors import InterfaceError
 import mysql.connector
+
+import sys
 
 #method for creating a dataset of daily average with dates in the format of [date,daily average]. Returns array of these entries for the whole year
 def dailyAverage(premiseDF):
@@ -31,18 +34,46 @@ def sendToOutputDB(premise, weather, power):
 
     for each in weather:
         data[f'{each[0]}'] = {'weather' : each[1]}
-
     for each in power:
         data[f'{each[0]}']['power'] = each[1]
-
+    
+    formatted_data = []
     for date, value in data.items():
-        try :
-            print(value)
-            query = f'INSERT INTO output_data(premise_id, data_date, weather_data, power_data) VALUES ({int(premise)}, {str(date)}, {float(value["weather"])}, {float(value["power"])});'
-            cursorObject.execute(query)
-            mydb.commit()
-        except :
-            query = f'UPDATE output_data SET weather_data = {value["weather"]}, power_data = {value["power"]} WHERE premise_id = {premise} AND data_date = {date};'
+        try:
+            formatted_data.append(tuple([premise, date, value['power']]))
+        except:
+            pass
+
+    try:
+        query = f'INSERT IGNORE INTO power_data(premise_id, data_date, power_data) VALUES (%s, %s, %s);'
+        cursorObject.executemany(query, formatted_data)
+        mydb.commit()
+    except InterfaceError as err:
+        print(err)
+    except :
+        raise Exception(f'Cannot insert power data into table for premise <{premise}>. Error: {sys.exc_info()[0]}')
+
+    # QUERY THE DATA
+    # Try to insert - if primary key exists, we update.
+    #for date, value in data.items():
+        #try :
+            #query = f'INSERT INTO weather(data_date, temp) VALUES ({str(date)}, {float(value["weather"])});'
+            #cursorObject.execute(query)
+            #mydb.commit()
+        #except :
+        #    pass
+        
+        #try :
+            #query = f'INSERT INTO power_data(premise_id, data_date, power_data) VALUES ({int(premise)}, {str(date)}, {float(value["power"])});'
+            #cursorObject.execute(query)
+            #mydb.commit()
+        #except :
+            #try:
+                #query = f'UPDATE power_data SET power_data = {value["power"]} WHERE premise_id = {premise} AND data_date = {date};'
+                #cursorObject.execute(query)
+                #mydb.commit()
+            #except:
+                #raise Exception(f'Power data could not be uploaded to database for premise <{premise}>.')
     
     mydb.close()
 
