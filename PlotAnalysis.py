@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
+from sqlalchemy import create_engine
+import mysql.connector
 
 #method for creating a dataset of daily average with dates in the format of [date,daily average]. Returns array of these entries for the whole year
 def dailyAverage(premiseDF):
@@ -12,13 +14,47 @@ def dailyAverage(premiseDF):
         averageArray.append([each,dailyAverageUsage])
     return averageArray
 
+def sendToOutputDB(premise, weather, power):
+    
+    # CONNECT TO DB
+    # TODO: Redo database class to allow more flexible database entry
+    mydb = mysql.connector.connect(
+    host="cpsc4910-mysql11.research.utc.edu",
+    user="cs4910-epb-cust-heat-remote",
+    password="5tvaH.epb",
+    database="output_db"
+    )
+    cursorObject = mydb.cursor()
+
+    # PROCESS DATA FOR DB
+    data : dict = {}
+
+    for each in weather:
+        data[f'{each[0]}'] = {'weather' : each[1]}
+
+    for each in power:
+        data[f'{each[0]}']['power'] = each[1]
+
+    for date, value in data.items():
+        try :
+            print(value)
+            query = f'INSERT INTO output_data(premise_id, data_date, weather_data, power_data) VALUES ({int(premise)}, {str(date)}, {float(value["weather"])}, {float(value["power"])});'
+            cursorObject.execute(query)
+            mydb.commit()
+        except :
+            query = f'UPDATE output_data SET weather_data = {value["weather"]}, power_data = {value["power"]} WHERE premise_id = {premise} AND data_date = {date};'
+    
+    mydb.close()
+
 #method for creating the matplot visual, powerSpikes and tempDrops parameters optional. IF included they spikes/drops will be shown on the visual. If not, only the usage and temp lines will be plotted
 def buildVisual(weather,power,powerSpikes = None,tempDrops = None, inference = None, premise = None, sqft = None):
     weatherData = []
     powerData = []
     
-    for each in weather: weatherData.append(each[1])
-    for each in power: powerData.append(each[1])
+    for each in weather:
+        weatherData.append(each[1])
+    for each in power:
+        powerData.append(each[1])
     
     rc('mathtext', default='regular')
     # Generating power consumption dataset
