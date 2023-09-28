@@ -52,28 +52,6 @@ def sendToOutputDB(premise, weather, power):
         print(err)
     except :
         raise Exception(f'Cannot insert power data into table for premise <{premise}>. Error: {sys.exc_info()[0]}')
-
-    # QUERY THE DATA
-    # Try to insert - if primary key exists, we update.
-    #for date, value in data.items():
-        #try :
-            #query = f'INSERT INTO weather(data_date, temp) VALUES ({str(date)}, {float(value["weather"])});'
-            #cursorObject.execute(query)
-            #mydb.commit()
-        #except :
-        #    pass
-        
-        #try :
-            #query = f'INSERT INTO power_data(premise_id, data_date, power_data) VALUES ({int(premise)}, {str(date)}, {float(value["power"])});'
-            #cursorObject.execute(query)
-            #mydb.commit()
-        #except :
-            #try:
-                #query = f'UPDATE power_data SET power_data = {value["power"]} WHERE premise_id = {premise} AND data_date = {date};'
-                #cursorObject.execute(query)
-                #mydb.commit()
-            #except:
-                #raise Exception(f'Power data could not be uploaded to database for premise <{premise}>.')
     
     mydb.close()
 
