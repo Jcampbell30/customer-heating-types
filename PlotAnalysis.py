@@ -17,7 +17,10 @@ def dailyAverage(premiseDF):
         averageArray.append([each,dailyAverageUsage])
     return averageArray
 
-def sendToOutputDB(premise, weather, power):
+def weatherOutput(weather):
+    pass
+
+def sendToOutputDB(premise, weather, power, inference):
     
     # CONNECT TO DB
     # TODO: Redo database class to allow more flexible database entry
@@ -36,6 +39,7 @@ def sendToOutputDB(premise, weather, power):
         data[f'{each[0]}'] = {'weather' : each[1]}
     for each in power:
         data[f'{each[0]}']['power'] = each[1]
+    data['coefficient'] = inference['Electric confidence:']
     
     formatted_data = []
     for date, value in data.items():

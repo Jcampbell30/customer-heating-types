@@ -52,7 +52,7 @@ def Main():
             #print("Building Visual...")    
             sqft = db().retrieveSqFtFromDB(prem)
             inference = infer(drops, spikes, correlationAvg, sqft)
-            sendToOutputDB(prem, tempData, averageArray)
+            sendToOutputDB(prem, tempData, averageArray, inference)
 
             # The following lines of code are used to insert the predictions
             # Uncomment for inputting predictions into database 
