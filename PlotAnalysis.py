@@ -57,7 +57,7 @@ def sendToOutputDB(premise, power, inference):
         cursorObject.execute(query)
         mydb.commit()
     except:
-        raise Exception(f'Cannot insert correlation coefficient into table for premise <{premise}>. Error: {sys.exc_info()[0]}')
+        pass
     
     mydb.close()
 
