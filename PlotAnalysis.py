@@ -17,10 +17,7 @@ def dailyAverage(premiseDF):
         averageArray.append([each,dailyAverageUsage])
     return averageArray
 
-def weatherOutput(weather):
-    pass
-
-def sendToOutputDB(premise, weather, power, inference):
+def sendToOutputDB(premise, power, inference):
     
     # CONNECT TO DB
     # TODO: Redo database class to allow more flexible database entry
@@ -35,10 +32,8 @@ def sendToOutputDB(premise, weather, power, inference):
     # PROCESS DATA FOR DB
     data : dict = {}
 
-    for each in weather:
-        data[f'{each[0]}'] = {'weather' : each[1]}
     for each in power:
-        data[f'{each[0]}']['power'] = each[1]
+        data[f'{each[0]}'] = {'power' : each[1]}
     data['coefficient'] = inference['Electric confidence:']
     
     formatted_data = []
@@ -56,6 +51,13 @@ def sendToOutputDB(premise, weather, power, inference):
         print(err)
     except :
         raise Exception(f'Cannot insert power data into table for premise <{premise}>. Error: {sys.exc_info()[0]}')
+    
+    try: 
+        query = f'INSERT IGNORE INTO predictions(premise_id, correlation_coefficient) VALUES ({premise}, {data["coefficient"]})'
+        cursorObject.execute(query)
+        mydb.commit()
+    except:
+        raise Exception(f'Cannot insert correlation coefficient into table for premise <{premise}>. Error: {sys.exc_info()[0]}')
     
     mydb.close()
 
