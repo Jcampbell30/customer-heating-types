@@ -7,8 +7,14 @@ CREATE TABLE power_data (
     PRIMARY KEY (premise_id, data_date)
 );
 
+CREATE TABLE predictions (
+    premise_id INT,
+    correlation_coefficient FLOAT,
+    FOREIGN KEY (premise_id) REFERENCES (power_data(premise_id))
+);
+
 CREATE TABLE weather(
     data_date VARCHAR(50),
     temp FLOAT,
-    PRIMARY KEY (data_date)
+    FOREIGN KEY (data_date) REFERENCES (power_data(data_date))
 );
