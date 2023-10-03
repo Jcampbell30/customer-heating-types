@@ -6,6 +6,7 @@ from SpikeDetector import getSpikes as getSpikes
 from SpikeDetector import getSpikesTemp as getSpikesTemp
 from PlotAnalysis import dailyAverage as dailyAverage
 from PlotAnalysis import buildVisual as buildVisual
+from PlotAnalysis import sendToOutputDB
 from InferenceLogic import infer, inferCorrelation
 #import pandas as pd
 from mysql.connector.errors import ProgrammingError
@@ -36,6 +37,7 @@ def Main():
     print(len(prems))
     for prem in premise_array:
         try:
+            print(prem)
             premiseData = db().retrievePowerFromDBSP(prem) #get power usage data for given premise from utc hosted database
             if not tempData:
                 tempData = db().retrieveTempFromDB(premiseData)
@@ -50,7 +52,7 @@ def Main():
             #print("Building Visual...")    
             sqft = db().retrieveSqFtFromDB(prem)
             inference = infer(drops, spikes, correlationAvg, sqft)
-
+            sendToOutputDB(prem, averageArray, inference)
 
             # The following lines of code are used to insert the predictions
             # Uncomment for inputting predictions into database 
@@ -71,9 +73,9 @@ def Main():
             #print(datetime.now())
         except ProgrammingError as err:
             print("The premise ID: " + prem + " was not found in our database. Please try again.")
-        except (StatisticsError) as err:
+        except StatisticsError as err:
             print("There was an error with the Stats. Please try again.")
-        except (ValueError) as errr:
+        except ValueError as errr:
             print("There was an error with the Value. Please try again.")
     end_time = datetime.now() # record end time
     print("Time taken:", end_time - start_time) # print time taken

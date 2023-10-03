@@ -6,6 +6,7 @@ from SpikeDetector import getSpikes as getSpikes
 from SpikeDetector import getSpikesTemp as getSpikesTemp
 from PlotAnalysis import dailyAverage as dailyAverage
 from PlotAnalysis import buildVisual as buildVisual
+from PlotAnalysis import sendToOutputDB
 from InferenceLogic import infer, inferCorrelation
 import pandas as pd
 from mysql.connector.errors import ProgrammingError
@@ -40,6 +41,7 @@ def Main():
         inference = infer(drops, spikes, correlationAvg, sqft)
         print("Electric Confidence Rating: " + str(inference.get("Electric confidence:")))
         print("Non-Electric Confidence Rating: " + str(inference.get("Non-Electric confidence:")))
+        sendToOutputDB(premiseId, tempData, averageArray)
         buildVisual(tempData,averageArray,spikes,drops,inference,premiseId, sqft)
         heating_type = "Electric" if inference.get("Electric confidence:") > inference.get("Non-Electric confidence:") else "Non-Electric"
         predictions = [[int(premiseId), heating_type, inference.get("Electric confidence:"), inference.get("Non-Electric confidence:")]]
@@ -47,7 +49,7 @@ def Main():
         rows_affected = db().insertInference(predictionsDF)
         print(datetime.now())
     except ProgrammingError as err:
-        print("The premise ID: " + premiseId + " was not found in our database. Please try again.")
+        print(f"The premise ID: {premiseId} was not found in our database. Please try again. {err}")
     except (StatisticsError, ValueError) as err:
         print("There was an error with the results. Please try again.")
     
