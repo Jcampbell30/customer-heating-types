@@ -8,22 +8,17 @@ import time
 
 class Database:
 
-    host = "cpsc4910-mysql11.research.utc.edu"
-    user = "cs4910-epb-cust-heat-remote"
-    password = "5tvaH.epb"
-    database = "epb_cust_htg"
-
-    def connectToDB(self):
+    def connectToDB(self, host:str, user:str, password:str, database_name:str):
         # Connect to database on MySQL Linux Server
         # TODO: add environment variables
-        mydb = mysql.connector.connect(
-        host="cpsc4910-mysql11.research.utc.edu",
-        user="cs4910-epb-cust-heat-remote",
-        password="5tvaH.epb",
-        database="epb_cust_htg"
+        self.mydb = mysql.connector.connect(
+        host=host,
+        user=user,
+        password=password,
+        database=database_name
         )
-        cursorObject = mydb.cursor()
-        return cursorObject, mydb
+        self.cursorObject = self.mydb.cursor()
+        return self.cursorObject, self.mydb
 
     # General function for querying data
     # TODO: Maybe some kind of input validation, either in this file or outside
