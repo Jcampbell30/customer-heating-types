@@ -1,11 +1,11 @@
 # The primary executable file from which the program can be run. 
 
 from datetime import datetime
-from Database import Database as db
-from SpikeDetector import getSpikes as getSpikes
-from SpikeDetector import getSpikesTemp as getSpikesTemp
-from PlotAnalysis import dailyAverage as dailyAverage
-from PlotAnalysis import buildVisual as buildVisual
+from Database import Database
+from SpikeDetector import getSpikes
+from SpikeDetector import getSpikesTemp
+from PlotAnalysis import dailyAverage
+from PlotAnalysis import buildVisual
 from PlotAnalysis import sendToOutputDB
 from InferenceLogic import infer, inferCorrelation
 #import pandas as pd
@@ -28,8 +28,13 @@ def Main():
     print("Retrieving Premise Power Usage Data...")
     '''
 
+    db = Database()
+    if db.connection.is_connected():
+        print("Connected to database")
+    else:
+        print("Not connected to database")
     start_time = datetime.now() # record start time
-    prems = db().query("SELECT premise FROM premises;")
+    prems = db.query("SELECT premise FROM premises;")
     premise_array = [premise[0] for premise in prems]
     tempData = []
     drops = []
@@ -37,11 +42,10 @@ def Main():
     print(len(prems))
     for prem in premise_array:
         try:
-            print(prem)
-            premiseData = db().retrievePowerFromDBSP(prem) #get power usage data for given premise from utc hosted database
+            premiseData = db.retrievePowerFromDBSP(prem) #get power usage data for given premise from utc hosted database
             if not tempData:
-                tempData = db().retrieveTempFromDB(premiseData)
-            #print("Premise = {}".format(prem))
+                tempData = db.retrieveTempFromDB(premiseData)
+            print("Premise = {}".format(prem))
             #print("Retrieving Weather Data...")
             #print("Calculating Spikes/Drops...")
             averageArray = dailyAverage(premiseData)
@@ -50,7 +54,7 @@ def Main():
             if not drops:
                 drops = getSpikesTemp(tempData,-410)
             #print("Building Visual...")    
-            sqft = db().retrieveSqFtFromDB(prem)
+            sqft = db.retrieveSqFtFromDB(prem)
             inference = infer(drops, spikes, correlationAvg, sqft)
             sendToOutputDB(prem, averageArray, inference)
 
@@ -77,6 +81,7 @@ def Main():
             print("There was an error with the Stats. Please try again.")
         except ValueError as errr:
             print("There was an error with the Value. Please try again.")
+    db.closeConnection()
     end_time = datetime.now() # record end time
     print("Time taken:", end_time - start_time) # print time taken
 Main()
