@@ -14,3 +14,12 @@ CREATE TABLE predictions (
     correlation_coefficient FLOAT,
     FOREIGN KEY (premise_id) REFERENCES power_data(premise_id)
 );
+
+CREATE TABLE anomalies (
+    premise_id INT,
+    data_date VARCHAR(50),
+    anomaly_type varchar(50),
+    anomaly_desc varchar(50),
+    FOREIGN KEY (premise_id) REFERENCES power_data(premise_id),
+    FOREIGN KEY (data_date) REFERENCES power_data(data_date)
+);
