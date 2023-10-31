@@ -27,12 +27,29 @@ def Main():
             prem = input("Premise ID must be a integer. Please try again: ")
     print("Retrieving Premise Power Usage Data...")
     '''
-
-    db = Database()
+    db = Database(
+        host="cpsc4910-mysql11.research.utc.edu",
+        user="cs4910-epb-cust-heat-remote",
+        password="5tvaH.epb",
+        database="epb_cust_htg"
+        )
     if db.connection.is_connected():
-        print("Connected to database")
+        print("Connected to input database")
     else:
-        print("Not connected to database")
+        print("Cannot connect to input database")
+        exit()
+
+    output_db = Database(
+        host="cpsc4910-mysql11.research.utc.edu",
+        user="cs4910-epb-cust-heat-remote",
+        password="5tvaH.epb",
+        database="output_db"
+    )
+    if output_db.connection.is_connected():
+        print("Connected to output database")
+    else:
+        print("Cannot connect to output database")
+        exit()
     start_time = datetime.now() # record start time
     prems = db.query("SELECT premise FROM premises;")
     premise_array = [premise[0] for premise in prems]
@@ -56,7 +73,7 @@ def Main():
             #print("Building Visual...")    
             sqft = db.retrieveSqFtFromDB(prem)
             inference = infer(drops, spikes, correlationAvg, sqft)
-            sendToOutputDB(prem, averageArray, inference)
+            sendToOutputDB(output_db, prem, averageArray, inference)
 
             # The following lines of code are used to insert the predictions
             # Uncomment for inputting predictions into database 
@@ -82,6 +99,7 @@ def Main():
         except ValueError as errr:
             print("There was an error with the Value. Please try again.")
     db.closeConnection()
+    output_db.closeConnection()
     end_time = datetime.now() # record end time
     print("Time taken:", end_time - start_time) # print time taken
 Main()
