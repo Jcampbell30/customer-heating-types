@@ -8,6 +8,7 @@ from PlotAnalysis import dailyAverage
 from PlotAnalysis import buildVisual
 from PlotAnalysis import sendToOutputDB
 from InferenceLogic import infer, inferCorrelation
+from AnomalyDetector import detect_anomaly, Anomaly
 #import pandas as pd
 from mysql.connector.errors import ProgrammingError
 from statistics import StatisticsError
@@ -73,6 +74,7 @@ def Main():
             #print("Building Visual...")    
             sqft = db.retrieveSqFtFromDB(prem)
             inference = infer(drops, spikes, correlationAvg, sqft)
+            # anomaly : Anomaly = detect_anomaly(averageArray, tempData)
             sendToOutputDB(output_db, prem, averageArray, inference)
 
             # The following lines of code are used to insert the predictions
