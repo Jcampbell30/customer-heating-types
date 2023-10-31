@@ -7,11 +7,11 @@ from sqlalchemy import create_engine
 import time
 
 class Database:
-    def __init__(self):
-        self.host = "cpsc4910-mysql11.research.utc.edu"
-        self.user = "cs4910-epb-cust-heat-remote"
-        self.password = "5tvaH.epb"
-        self.database = "epb_cust_htg"
+    def __init__(self, host:str, user:str, password:str, database:str):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
         self.connection = self.connectToDB()
 
     def connectToDB(self):
