@@ -8,7 +8,7 @@ from PlotAnalysis import dailyAverage
 from PlotAnalysis import buildVisual
 from PlotAnalysis import sendToOutputDB
 from InferenceLogic import infer, inferCorrelation
-from AnomalyDetector import detect_anomaly, Anomaly
+from AnomalyDetector import _parse_date_for_month, detect_anomaly, Anomaly
 #import pandas as pd
 from mysql.connector.errors import ProgrammingError
 from statistics import StatisticsError
@@ -74,8 +74,9 @@ def Main():
             #print("Building Visual...")    
             sqft = db.retrieveSqFtFromDB(prem)
             inference = infer(drops, spikes, correlationAvg, sqft)
-            # anomaly : Anomaly = detect_anomaly(averageArray, tempData)
+            anomalies : list = detect_anomaly(prem, averageArray, tempData, inference['Electric confidence:'])
             sendToOutputDB(output_db, prem, averageArray, inference)
+            
 
             # The following lines of code are used to insert the predictions
             # Uncomment for inputting predictions into database 
@@ -90,7 +91,6 @@ def Main():
 
             #print("Electric Confidence Rating: " + str(inference.get("Electric confidence:")))
             #print("Non-Electric Confidence Rating: " + str(inference.get("Non-Electric confidence:")))
-            #buildVisual(tempData,averageArray,spikes,drops,inference,prem, sqft)
             
             #print("--------------------------------------------------")
             #print(datetime.now())
