@@ -25,6 +25,18 @@ class Anomaly:
 
 
 def detect_anomaly(premise_id : int, power_data : list, weather_data : list, confidence_rating : float) -> list:
+    """Detects all of the anomalies attached to an individual residence then returns them all.
+
+    Args:
+        premise_id (int): The ID for a premise in the database.
+        power_data (list): A list containing all of the power usage data on a per-day basis for a premise.
+        weather_data (list): A list containing all of the weather data on a per-day basis.
+        confidence_rating (float): A float representing the confidence rating for a given premise.
+
+    Returns:
+        list: A list of all the anomalies detected for a given premise.
+    """    
+
     detected_anomalies : list = []
 
     # Check for zero power use situations.
