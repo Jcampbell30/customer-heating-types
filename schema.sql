@@ -22,6 +22,10 @@ CREATE TABLE anomaly_types (
     PRIMARY KEY (anomaly_type_id)
 );
 
+INSERT INTO anomaly_types(anomaly_type_id, anomaly_type, anomaly_desc) VALUES (1, "Zero-Usage", "A premise that's data shows zero electrical usage for a given period.");
+INSERT INTO anomaly_types(anomaly_type_id, anomaly_type, anomaly_desc) VALUES (2, "Negative-Usage", "A premise that's data shows negative electrical usage for a given period.");
+INSERT INTO anomaly_types(anomaly_type_id, anomaly_type, anomaly_desc) VALUES (3, "Non-Confidence", "A premise that's data assessment shows an unacceptable level of confidence.");
+
 CREATE TABLE anomalies (
     id INT NOT NULL AUTO_INCREMENT,
     premise_id INT,
