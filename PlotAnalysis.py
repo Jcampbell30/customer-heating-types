@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 from sqlalchemy import create_engine
 from mysql.connector.errors import InterfaceError
+from Database import Database
 import mysql.connector
 
 import sys
@@ -17,17 +18,12 @@ def dailyAverage(premiseDF):
         averageArray.append([each,dailyAverageUsage])
     return averageArray
 
-def sendToOutputDB(premise, power, inference):
-    
+def sendToOutputDB(database_obj : Database, premise, power, inference):
+
     # CONNECT TO DB
     # TODO: Redo database class to allow more flexible database entry
-    mydb = mysql.connector.connect(
-    host="cpsc4910-mysql11.research.utc.edu",
-    user="cs4910-epb-cust-heat-remote",
-    password="5tvaH.epb",
-    database="output_db"
-    )
-    cursorObject = mydb.cursor()
+    mydb = database_obj.connection
+    cursorObject = database_obj.connection.cursor()
 
     # PROCESS DATA FOR DB
     data : dict = {}
@@ -58,8 +54,6 @@ def sendToOutputDB(premise, power, inference):
         mydb.commit()
     except:
         pass
-    
-    mydb.close()
 
 #method for creating the matplot visual, powerSpikes and tempDrops parameters optional. IF included they spikes/drops will be shown on the visual. If not, only the usage and temp lines will be plotted
 def buildVisual(weather,power,powerSpikes = None,tempDrops = None, inference = None, premise = None, sqft = None):

@@ -1,0 +1,11 @@
+{
+    "input_database_hostname" : "cpsc4910-mysql11.research.utc.edu",
+    "input_database_user" : "cs4910-epb-cust-heat-remote",
+    "input_database_password" : "5tvaH.epb",
+    "input_database_name" : "epb_cust_htg",
+
+    "output_database_hostname" : "cpsc4910-mysql11.research.utc.edu",
+    "output_database_user" : "cs4910-epb-cust-heat-remote",
+    "output_database_password" : "5tvaH.epb",
+    "output_database_name" : "output_db"
+}

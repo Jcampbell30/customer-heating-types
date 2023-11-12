@@ -7,60 +7,47 @@ from sqlalchemy import create_engine
 import time
 
 class Database:
-
-    host = "cpsc4910-mysql11.research.utc.edu"
-    user = "cs4910-epb-cust-heat-remote"
-    password = "5tvaH.epb"
-    database = "epb_cust_htg"
+    def __init__(self, host:str, user:str, password:str, database:str):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.connection = self.connectToDB()
 
     def connectToDB(self):
-        # Connect to database on MySQL Linux Server
-        # TODO: add environment variables
-        mydb = mysql.connector.connect(
-        host="cpsc4910-mysql11.research.utc.edu",
-        user="cs4910-epb-cust-heat-remote",
-        password="5tvaH.epb",
-        database="epb_cust_htg"
+        return mysql.connector.connect(
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database
         )
-        cursorObject = mydb.cursor()
-        return cursorObject, mydb
 
-    # General function for querying data
-    # TODO: Maybe some kind of input validation, either in this file or outside
     def query(self, query):
-        cursorObject,mydb = self.connectToDB()
-        cursorObject.execute(query)
-        result = cursorObject.fetchall()
-        mydb.close()
+        cursor = self.connection.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
         return result
 
     def retrievePowerFromDB(self, premise):
-        list = Database().query("SELECT * FROM power_usage WHERE premise = "+str(premise)+" and recorded_date > 20201231 and recorded_date < 20220101;")
-        df = pd.DataFrame(list,columns=['Date','Hour','Premise','Usage'])
+        query = f"SELECT * FROM power_usage WHERE premise = {premise} and recorded_date > 20201231 and recorded_date < 20220101;"
+        df = pd.read_sql_query(query, self.connection)
         return df
 
-    # Stored procedure database call
     def retrievePowerFromDBSP(self, premise):
-        cursorObject,mydb = self.connectToDB()
+        cursor = self.connection.cursor()
         try:
-            cursorObject.callproc('find_power_usage_by_premise_id', [premise])
-            list = cursorObject._stored_results[0].fetchall()
-
-            df = pd.DataFrame(list,columns=['Date','Hour','Premise','Usage'])
+            cursor.callproc('find_power_usage_by_premise_id', [premise])
+            result = cursor._stored_results[0].fetchall()
+            df = pd.DataFrame(result, columns=['Date', 'Hour', 'Premise', 'Usage'])
             return df
-
         except mysql.connector.Error as e:
             print(e)
-
-        finally:
-            cursorObject.close()
-            mydb.close()
-
+        
 
     def retrieveTempFromDB(self, premiseDF):
         dates = premiseDF.Date.unique()
         weatherData = []
-        list = Database().query("SELECT * FROM daily_weather;")
+        list = self.query("SELECT * FROM daily_weather;")
         temporary = []
         weatherData = []
         #TODO: Possibly expand to 2022
@@ -71,6 +58,7 @@ class Database:
 
     def retrieveSqFtFromDB(self, premise):
         sqft = self.query(f"select sqft from sqft where premise = {premise}")
+        print(sqft)
         if (len(sqft) == 0):
             return None
         return sqft[0][0]
@@ -80,17 +68,23 @@ class Database:
         rows_affected = predictionsDF.to_sql("predictions", con=engine, if_exists='replace', index=False)
         rows_affected = rows_affected if rows_affected is not None else 0
         return rows_affected
+    
+    def closeConnection(self):
+        if self.connection.is_connected():
+            self.connection.close()
 
         
 # Test
 def main():
+    db = Database()
     start_time = time.time()
     for i in range(1, 100000):
-        Database().retrievePowerFromDBSP(i)
+        db.retrievePowerFromDBSP(i)
     print("--- Stored Procedures: %s seconds ---" % (time.time() - start_time))
 
 
     start_time = time.time()
     for i in range(1, 100000):
-        Database().retrievePowerFromDB(i)
+        db.retrievePowerFromDB(i)
     print("--- Normal Query: %s seconds ---" % (time.time() - start_time))
+
