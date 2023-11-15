@@ -75,7 +75,7 @@ def Main():
             sqft = db.retrieveSqFtFromDB(prem)
             inference = infer(drops, spikes, correlationAvg, sqft)
             anomalies : list = detect_anomaly(prem, averageArray, tempData, inference['Electric confidence:'])
-            sendToOutputDB(output_db, prem, averageArray, inference)
+            sendToOutputDB(output_db, prem, averageArray, inference, anomalies)
             
 
             # The following lines of code are used to insert the predictions
