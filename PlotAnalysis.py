@@ -56,16 +56,14 @@ def sendToOutputDB(database_obj : Database, premise, power, inference, anomalies
         pass
 
     if len(anomalies) != 0:
+        print("Anomalies in output")
         formatted_anomalies = []
         for anomaly in anomalies:
-            formatted_anomalies.append(tuple([anomaly.premise_id, anomaly.anomaly_type, anomaly.time]))
+            formatted_anomalies.append(tuple([anomaly.premise_id, anomaly.time, int(anomaly.anomaly_type)]))
 
-        try:
-            query = f'INSERT IGNORE INTO anomalies(premise_id, data_date, anomaly_type_id) VALUES (%s,%s,%s);'
-            cursorObject.executemany(query, formatted_anomalies)
-            mydb.commit()
-        except:
-            pass
+        query = f'INSERT INTO anomalies(premise_id, data_date, anomaly_type_id) VALUES (%s,%s,%s);'
+        cursorObject.executemany(query, formatted_anomalies)
+        mydb.commit()
 
 #method for creating the matplot visual, powerSpikes and tempDrops parameters optional. IF included they spikes/drops will be shown on the visual. If not, only the usage and temp lines will be plotted
 def buildVisual(weather,power,powerSpikes = None,tempDrops = None, inference = None, premise = None, sqft = None):

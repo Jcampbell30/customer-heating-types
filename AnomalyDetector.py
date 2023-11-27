@@ -45,7 +45,8 @@ def detect_anomaly(premise_id : int, power_data : list, weather_data : list, con
         for each in zero_use_check['anomalies']:
             detected_anomalies.append(Anomaly(
                 premise_id = premise_id, 
-                anomaly_type =Anomaly.AnomalyTypes.ZERO_USE,
+                #anomaly_type =Anomaly.AnomalyTypes.ZERO_USE,
+                anomaly_type = 1,
                 time=each))
     
     # Check for negative power use situations.
@@ -54,14 +55,15 @@ def detect_anomaly(premise_id : int, power_data : list, weather_data : list, con
         for each in negative_use_check['anomalies']:
             detected_anomalies.append(Anomaly(
                 premise_id=premise_id,
-                anomaly_type=Anomaly.AnomalyTypes.NEGATIVE_USE, 
+                #anomaly_type=Anomaly.AnomalyTypes.NEGATIVE_USE,
+                anomaly_type = 2, 
                 time=each))
             
     # Check for low confidence.
     if _detect_non_confidence(confidence_rating):
         detected_anomalies.append(Anomaly(
             premise_id=premise_id,
-            anomaly_type=Anomaly.AnomalyTypes.NON_CONFIDENCE,
+            anomaly_type= 3,
             time=1
         ))
     
@@ -86,6 +88,7 @@ def _detect_zero_use(power_data : list) -> dict:
 def _detect_negative_use(power_data : list) -> dict:
     data: dict = {}
     data['is_detected'] = False
+    data['anomalies'] = []
     for each in power_data:
         date = each[0]
         power = each[1]
@@ -98,12 +101,12 @@ def _detect_negative_use(power_data : list) -> dict:
     return data
 
 def _detect_non_confidence(confidence_rating : float) -> bool:
-    if confidence_rating > 60 or confidence_rating < 40:
+    if confidence_rating > 70 or confidence_rating < 50:
         return False
     return True
 
 def _parse_date_for_month(date:str) -> int:
     #20210108   >>>   01s
     date = str(date)
-    ret = f'{date[4]}{date[5]}'
-    return int(ret)
+    new_date = f'{date[0]}{date[1]}{date[2]}{date[3]}{date[4]}{date[5]}01'
+    return int(new_date)
