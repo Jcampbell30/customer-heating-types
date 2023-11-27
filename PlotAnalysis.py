@@ -1,6 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
+from sqlalchemy import create_engine
+from mysql.connector.errors import InterfaceError
+from Database import Database
+import mysql.connector
+
+import sys
 
 #method for creating a dataset of daily average with dates in the format of [date,daily average]. Returns array of these entries for the whole year
 def dailyAverage(premiseDF):
@@ -12,13 +18,62 @@ def dailyAverage(premiseDF):
         averageArray.append([each,dailyAverageUsage])
     return averageArray
 
+def sendToOutputDB(database_obj : Database, premise, power, inference, anomalies : list):
+
+    # CONNECT TO DB
+    # TODO: Redo database class to allow more flexible database entry
+    mydb = database_obj.connection
+    cursorObject = database_obj.connection.cursor()
+
+    # PROCESS DATA FOR DB
+    data : dict = {}
+
+    for each in power:
+        data[f'{each[0]}'] = {'power' : each[1]}
+    data['coefficient'] = inference['Electric confidence:']
+    
+    formatted_data = []
+    for date, value in data.items():
+        try:
+            formatted_data.append(tuple([premise, date, value['power']]))
+        except:
+            pass
+
+    try:
+        query = f'INSERT IGNORE INTO power_data(premise_id, data_date, power_data) VALUES (%s, %s, %s);'
+        cursorObject.executemany(query, formatted_data)
+        mydb.commit()
+    except InterfaceError as err:
+        print(err)
+    except :
+        raise Exception(f'Cannot insert power data into table for premise <{premise}>. Error: {sys.exc_info()[0]}')
+    
+    try: 
+        query = f'INSERT IGNORE INTO predictions(premise_id, correlation_coefficient) VALUES ({premise}, {data["coefficient"]})'
+        cursorObject.execute(query)
+        mydb.commit()
+    except:
+        pass
+
+    if len(anomalies) != 0:
+        print("Anomalies in output")
+        formatted_anomalies = []
+        for anomaly in anomalies:
+            formatted_anomalies.append(tuple([anomaly.premise_id, anomaly.time, int(anomaly.anomaly_type)]))
+
+        query = f'INSERT INTO anomalies(premise_id, data_date, anomaly_type_id) VALUES (%s,%s,%s);'
+        cursorObject.executemany(query, formatted_anomalies)
+        mydb.commit()
+
 #method for creating the matplot visual, powerSpikes and tempDrops parameters optional. IF included they spikes/drops will be shown on the visual. If not, only the usage and temp lines will be plotted
 def buildVisual(weather,power,powerSpikes = None,tempDrops = None, inference = None, premise = None, sqft = None):
     weatherData = []
     powerData = []
     
-    for each in weather: weatherData.append(each[1])
-    for each in power: powerData.append(each[1])
+    for each in weather:
+        weatherData.append(each[1])
+    for each in power:
+        powerData.append(each[1])
     
     rc('mathtext', default='regular')
     # Generating power consumption dataset
